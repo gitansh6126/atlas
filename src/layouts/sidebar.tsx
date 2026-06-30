@@ -1,6 +1,10 @@
+import { useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { PanelLeftClose, PanelLeft, Trash2, Settings, HelpCircle } from 'lucide-react'
 import { useSidebarStore } from '@/layouts/sidebar-store'
+import { useWorkspaceStore } from '@/modules/workspace/workspace-store'
+import { useFolderStore } from '@/modules/folders/folder-store'
+import { usePageStore } from '@/modules/pages/page-store'
 import { Button } from '@/shared/components/ui/button'
 import { ScrollArea } from '@/shared/components/ui/scroll-area'
 import { Separator } from '@/shared/components/ui/separator'
@@ -18,8 +22,18 @@ import { cn } from '@/shared/utils/cn'
 
 export function Sidebar() {
   const { collapsed, toggleSidebar } = useSidebarStore()
+  const currentWorkspaceId = useWorkspaceStore((s) => s.currentWorkspaceId)
+  const loadFolders = useFolderStore((s) => s.loadFolders)
+  const loadPages = usePageStore((s) => s.loadPages)
   const navigate = useNavigate()
   const location = useLocation()
+
+  useEffect(() => {
+    if (currentWorkspaceId) {
+      loadFolders(currentWorkspaceId)
+      loadPages(currentWorkspaceId)
+    }
+  }, [currentWorkspaceId, loadFolders, loadPages])
 
   return (
     <TooltipProvider>

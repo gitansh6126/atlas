@@ -1,100 +1,114 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Workspace, Folder, Page } from '@/shared/types'
+import type { Workspace } from '@/core/types/domain'
+import { workspaceRepository } from '@/core/repositories'
+import {
+  commandBus,
+  CreateWorkspaceCommand,
+  RenameWorkspaceCommand,
+  DeleteWorkspaceCommand,
+  DuplicateWorkspaceCommand,
+} from '@/core/commands'
 
 interface WorkspaceState {
   workspaces: Workspace[];
-  folders: Folder[];
-  pages: Page[];
   currentWorkspaceId: string | null;
   selectedPageId: string | null;
+  isLoading: boolean;
+  error: string | null;
 
+  loadWorkspaces: () => Promise<void>;
   setCurrentWorkspace: (id: string) => void;
   setSelectedPage: (id: string | null) => void;
-  addWorkspace: (workspace: Workspace) => void;
-  addFolder: (folder: Folder) => void;
-  addPage: (page: Page) => void;
-  toggleFavorite: (pageId: string) => void;
+  createWorkspace: (name: string) => Promise<void>;
+  renameWorkspace: (id: string, name: string) => Promise<void>;
+  deleteWorkspace: (id: string) => Promise<void>;
+  duplicateWorkspace: (id: string) => Promise<void>;
   getCurrentWorkspace: () => Workspace | undefined;
-  getCurrentWorkspaceFolders: () => Folder[];
-  getCurrentWorkspacePages: () => Page[];
-  getFavoritePages: () => Page[];
-  getRecentPages: () => Page[];
 }
 
 export const useWorkspaceStore = create<WorkspaceState>()(
   persist(
     (set, get) => ({
-      workspaces: [
-        {
-          id: 'default',
-          name: 'My Workspace',
-          icon: 'LayoutGrid',
-          createdAt: Date.now(),
-        },
-      ],
-      folders: [],
-      pages: [],
-      currentWorkspaceId: 'default',
+      workspaces: [],
+      currentWorkspaceId: null,
       selectedPageId: null,
+      isLoading: false,
+      error: null,
+
+      loadWorkspaces: async () => {
+        set({ isLoading: true, error: null })
+        const result = await workspaceRepository.findAllActive()
+        if (result.success) {
+          const workspaces = result.data
+          set((state) => ({
+            workspaces,
+            isLoading: false,
+            currentWorkspaceId: state.currentWorkspaceId ?? workspaces[0]?.id ?? null,
+          }))
+        } else {
+          set({ error: result.error.message, isLoading: false })
+        }
+      },
 
       setCurrentWorkspace: (id) => set({ currentWorkspaceId: id }),
 
       setSelectedPage: (id) => {
         set({ selectedPageId: id })
-        if (id) {
+      },
+
+      createWorkspace: async (name: string) => {
+        const result = await commandBus.execute(new CreateWorkspaceCommand(), { name })
+        if (result.success) {
           set((state) => ({
-            pages: state.pages.map((p) =>
-              p.id === id ? { ...p, lastOpened: Date.now() } : p,
-            ),
+            workspaces: [...state.workspaces, result.data.workspace],
+            currentWorkspaceId: result.data.workspace.id,
           }))
         }
       },
 
-      addWorkspace: (workspace) =>
-        set((state) => ({ workspaces: [...state.workspaces, workspace] })),
+      renameWorkspace: async (id: string, name: string) => {
+        const result = await commandBus.execute(new RenameWorkspaceCommand(), { workspaceId: id, name })
+        if (result.success) {
+          set((state) => ({
+            workspaces: state.workspaces.map((w) => (w.id === id ? result.data.workspace : w)),
+          }))
+        }
+      },
 
-      addFolder: (folder) => set((state) => ({ folders: [...state.folders, folder] })),
+      deleteWorkspace: async (id: string) => {
+        const result = await commandBus.execute(new DeleteWorkspaceCommand(), { workspaceId: id })
+        if (result.success) {
+          set((state) => ({
+            workspaces: state.workspaces.filter((w) => w.id !== id),
+            currentWorkspaceId:
+              state.currentWorkspaceId === id
+                ? state.workspaces.find((w) => w.id !== id)?.id ?? null
+                : state.currentWorkspaceId,
+          }))
+        }
+      },
 
-      addPage: (page) => set((state) => ({ pages: [...state.pages, page] })),
-
-      toggleFavorite: (pageId) =>
-        set((state) => ({
-          pages: state.pages.map((p) =>
-            p.id === pageId ? { ...p, isFavorite: !p.isFavorite } : p,
-          ),
-        })),
+      duplicateWorkspace: async (id: string) => {
+        const result = await commandBus.execute(new DuplicateWorkspaceCommand(), { workspaceId: id })
+        if (result.success) {
+          set((state) => ({
+            workspaces: [...state.workspaces, result.data.workspace],
+          }))
+        }
+      },
 
       getCurrentWorkspace: () => {
         const state = get()
         return state.workspaces.find((w) => w.id === state.currentWorkspaceId)
       },
-
-      getCurrentWorkspaceFolders: () => {
-        const state = get()
-        return state.folders.filter((f) => f.workspaceId === state.currentWorkspaceId)
-      },
-
-      getCurrentWorkspacePages: () => {
-        const state = get()
-        return state.pages.filter((p) => p.workspaceId === state.currentWorkspaceId)
-      },
-
-      getFavoritePages: () => {
-        const state = get()
-        return state.pages.filter(
-          (p) => p.workspaceId === state.currentWorkspaceId && p.isFavorite,
-        )
-      },
-
-      getRecentPages: () => {
-        const state = get()
-        return state.pages
-          .filter((p) => p.workspaceId === state.currentWorkspaceId)
-          .sort((a, b) => b.lastOpened - a.lastOpened)
-          .slice(0, 5)
-      },
     }),
-    { name: 'atlas-workspace' },
+    {
+      name: 'atlas-workspace',
+      partialize: (state) => ({
+        currentWorkspaceId: state.currentWorkspaceId,
+        selectedPageId: state.selectedPageId,
+      }),
+    },
   ),
 )

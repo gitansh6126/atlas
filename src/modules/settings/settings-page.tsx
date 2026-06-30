@@ -1,4 +1,9 @@
+import { useState, useCallback } from 'react'
 import { useThemeStore } from '@/core/theme/theme-store'
+import { useWorkspaceStore } from '@/modules/workspace/workspace-store'
+import { useToastStore } from '@/shared/hooks/use-toast'
+import { Input } from '@/shared/components/ui/input'
+import { Button } from '@/shared/components/ui/button'
 import {
   Card,
   CardContent,
@@ -10,6 +15,17 @@ import { Separator } from '@/shared/components/ui/separator'
 
 export function SettingsPage() {
   const { theme, setTheme } = useThemeStore()
+  const currentWorkspace = useWorkspaceStore((s) => s.getCurrentWorkspace())
+  const renameWorkspace = useWorkspaceStore((s) => s.renameWorkspace)
+  const toast = useToastStore((s) => s.toast)
+
+  const [workspaceName, setWorkspaceName] = useState(currentWorkspace?.name ?? '')
+
+  const handleSaveWorkspaceName = useCallback(async () => {
+    if (!currentWorkspace || !workspaceName.trim()) return
+    await renameWorkspace(currentWorkspace.id, workspaceName.trim())
+    toast('Workspace name updated', 'success')
+  }, [currentWorkspace, workspaceName, renameWorkspace, toast])
 
   return (
     <div className="mx-auto max-w-2xl space-y-8 px-6 py-8">
@@ -19,6 +35,33 @@ export function SettingsPage() {
       </div>
 
       <Separator />
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">General</CardTitle>
+          <CardDescription>Basic workspace settings</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            <div>
+              <p className="text-sm font-medium">Workspace Name</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                The name displayed in the sidebar
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Input
+                value={workspaceName}
+                onChange={(e) => setWorkspaceName(e.target.value)}
+                className="max-w-xs"
+              />
+              <Button size="sm" onClick={handleSaveWorkspaceName}>
+                Save
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -55,24 +98,6 @@ export function SettingsPage() {
                 Dark
               </button>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">General</CardTitle>
-          <CardDescription>Basic workspace settings</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium">Workspace Name</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                The name displayed in the sidebar
-              </p>
-            </div>
-            <p className="text-sm text-muted-foreground">My Workspace</p>
           </div>
         </CardContent>
       </Card>

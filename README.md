@@ -1,32 +1,180 @@
-# React + TypeScript + Vite
+# Atlas
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+> **A reusable, offline-first Knowledge Workspace Engine.**
 
-Currently, two official plugins are available:
+![React](https://img.shields.io/badge/React-✓-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-✓-3178C6)
+![Vite](https://img.shields.io/badge/Vite-✓-646CFF)
+![Tailwind](https://img.shields.io/badge/TailwindCSS-✓-38BDF8)
+![Zustand](https://img.shields.io/badge/Zustand-✓-000000)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## What is Atlas?
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Atlas is **not** just a note-taking application.
 
-## Expanding the Oxlint configuration
+Atlas is a reusable **Knowledge Workspace Engine** designed to power multiple software projects through a single modular foundation.
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+Instead of building a new editor, search engine, storage system, or AI integration for every project, Atlas provides one reusable platform.
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+---
+
+## Projects Powered by Atlas
+
+- 📚 IIT Madras Learning Portal (MLT)
+- 🎓 MAD2 Portal
+- 🧠 Personal Knowledge Base
+- 🏢 Rainbowz Documentation
+- 🏭 RS Machinery Documentation
+- 📖 Business SOPs
+- 🚀 Future SaaS products
+
+---
+
+## Vision
+
+Build once.
+
+Reuse everywhere.
+
+Atlas aims to become an offline-first knowledge platform that combines the strengths of:
+
+- Notion
+- Obsidian
+- VS Code
+- Canva (editing experience)
+- Plugin-based architecture
+
+while remaining modular and developer-friendly.
+
+---
+
+## Current Status
+
+Current Phase:
+
+✅ Foundation Complete
+
+Current focus:
+
+- Application Shell
+- Architecture
+- Domain Model
+
+Upcoming:
+
+- Storage Engine
+- Command System
+- Plugin SDK
+- Block Editor
+
+---
+
+## Technology Stack
+
+- React
+- Vite
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- Zustand
+- React Router
+
+Future:
+
+- Dexie (IndexedDB)
+- Supabase
+- GitHub Sync
+
+---
+
+## Project Structure
+
+```
+src/
+
+core/
+modules/
+plugins/
+shared/
+layouts/
+pages/
+assets/
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+---
+
+## Design Principles
+
+- Offline First
+- Block-Based Architecture
+- Plugin-Driven
+- Storage Agnostic
+- AI Optional
+- Reusable
+- Modular
+- Scalable
+- Human Content First
+
+---
+
+## Getting Started
+
+Install dependencies
+
+```bash
+npm install
+```
+
+Start development server
+
+```bash
+npm run dev
+```
+
+Build production
+
+```bash
+npm run build
+```
+
+---
+
+## Documentation
+
+This repository will gradually include:
+
+- AIAGENT.md
+- ARCHITECTURE.md
+- atlas-domain-model.md
+- docs/
+
+---
+
+## Long-Term Roadmap
+
+- Workspace Management
+- Block Editor
+- Plugin System
+- Search Engine
+- Version History
+- Media Library
+- Git Export
+- Cloud Sync
+- AI Integration
+- Atlas SDK
+
+---
+
+## Philosophy
+
+Atlas is a platform.
+
+Applications should depend on Atlas instead of rebuilding the same infrastructure repeatedly.
+
+---
+
+## License
+
+Private project (for now).

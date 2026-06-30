@@ -1,5 +1,6 @@
 import { Bell, Command } from 'lucide-react'
 import { useWorkspaceStore } from '@/modules/workspace/workspace-store'
+import { usePageStore } from '@/modules/pages/page-store'
 import { Button } from '@/shared/components/ui/button'
 import { SearchBar } from '@/shared/components/common/search-bar'
 import { Breadcrumb } from '@/shared/components/common/breadcrumb'
@@ -22,8 +23,9 @@ interface TopbarProps {
 export function Topbar({ onCommandPaletteOpen, className }: TopbarProps) {
   const workspace = useWorkspaceStore((s) => s.getCurrentWorkspace())
   const selectedPageId = useWorkspaceStore((s) => s.selectedPageId)
-  const pages = useWorkspaceStore((s) => s.getCurrentWorkspacePages())
-  const selectedPage = pages.find((p) => p.id === selectedPageId)
+  const pages = usePageStore((s) => s.pages)
+  const currentWorkspaceId = useWorkspaceStore((s) => s.currentWorkspaceId)
+  const selectedPage = pages.find((p) => p.id === selectedPageId && p.workspaceId === currentWorkspaceId)
 
   const breadcrumbItems: BreadcrumbItem[] = [
     { label: workspace?.name ?? 'Workspace' },
@@ -33,13 +35,10 @@ export function Topbar({ onCommandPaletteOpen, className }: TopbarProps) {
   return (
     <TooltipProvider>
       <header className={cn('flex h-12 items-center gap-3 border-b bg-background px-4', className)}>
-        {/* Breadcrumb */}
         <Breadcrumb items={breadcrumbItems} className="min-w-0 flex-1" />
 
-        {/* Search */}
         <SearchBar className="hidden w-64 sm:block" />
 
-        {/* Command Palette */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -56,10 +55,8 @@ export function Topbar({ onCommandPaletteOpen, className }: TopbarProps) {
           </TooltipContent>
         </Tooltip>
 
-        {/* Theme Toggle */}
         <ThemeToggle />
 
-        {/* Notifications */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon-sm" className="relative text-muted-foreground">
@@ -72,7 +69,6 @@ export function Topbar({ onCommandPaletteOpen, className }: TopbarProps) {
           </TooltipContent>
         </Tooltip>
 
-        {/* Profile */}
         <UserProfile />
       </header>
     </TooltipProvider>
