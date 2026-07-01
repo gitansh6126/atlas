@@ -69,9 +69,36 @@ export const BLOCK_TYPE_HEADING = 'heading';
 
 export const BLOCK_TYPE_DIVIDER = 'divider';
 
+export const BLOCK_TYPE_GRID = 'grid';
+
+export const BLOCK_TYPE_LIST = 'list';
+
+export const BLOCK_TYPE_CARD = 'card';
+
+export const BLOCK_TYPE_GALLERY = 'gallery';
+
+export const BLOCK_TYPE_KANBAN = 'kanban';
+
+export const BLOCK_TYPE_CALENDAR = 'calendar';
+
+export const BLOCK_TYPE_LABEL = 'label';
+
+export const BLOCK_TYPE_TAG = 'tag';
+
+export const BLOCK_TYPE_HTML_EMBED = 'html_embed';
+
 export const BLOCK_TYPES_BUILTIN: readonly string[] = [
   BLOCK_TYPE_ROOT,
   BLOCK_TYPE_PARAGRAPH,
   BLOCK_TYPE_HEADING,
   BLOCK_TYPE_DIVIDER,
+  BLOCK_TYPE_GRID,
+  BLOCK_TYPE_LIST,
+  BLOCK_TYPE_CARD,
+  BLOCK_TYPE_GALLERY,
+  BLOCK_TYPE_KANBAN,
+  BLOCK_TYPE_CALENDAR,
+  BLOCK_TYPE_LABEL,
+  BLOCK_TYPE_TAG,
+  BLOCK_TYPE_HTML_EMBED,
 ] as const;

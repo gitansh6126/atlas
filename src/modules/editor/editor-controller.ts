@@ -6,6 +6,10 @@ import { rootPlugin } from '@/core/editor/plugins/root-plugin'
 import { paragraphPlugin } from '@/core/editor/plugins/paragraph-plugin'
 import { headingPlugin } from '@/core/editor/plugins/heading-plugin'
 import { dividerPlugin } from '@/core/editor/plugins/divider-plugin'
+import { gridPlugin } from '@/core/editor/plugins/grid-plugin'
+import { labelPlugin } from '@/core/editor/plugins/label-plugin'
+import { tagPlugin } from '@/core/editor/plugins/tag-plugin'
+import { htmlEmbedPlugin } from '@/core/editor/plugins/html-embed-plugin'
 import { InsertBlockCommand } from '@/core/editor/editor-commands'
 import { commandBus } from '@/core/commands/command-bus'
 import { pageRepository, blockRepository } from '@/core/repositories'
@@ -46,6 +50,10 @@ export class EditorController extends EventTarget {
     registry.register(paragraphPlugin)
     registry.register(headingPlugin)
     registry.register(dividerPlugin)
+    registry.register(gridPlugin)
+    registry.register(labelPlugin)
+    registry.register(tagPlugin)
+    registry.register(htmlEmbedPlugin)
     this.engine = new EditorEngine(registry)
     this.clipboard = new ClipboardService()
   }
@@ -70,6 +78,7 @@ export class EditorController extends EventTarget {
 
   setReadOnly(readOnly: boolean): void {
     this.engine.setReadOnly(readOnly)
+    this.dispatchEvent(new CustomEvent('read-only-change'))
   }
 
   isReadOnly(): boolean {
@@ -537,7 +546,7 @@ export class EditorController extends EventTarget {
     return block?.type ?? 'paragraph'
   }
 
-  convertBlock(blockId: string, newType: string): Block | null {
+  convertBlock(blockId: string, newType: string, contentOverride?: Record<string, unknown>): Block | null {
     const document = this.engine.getDocument()
     const blockManager = this.engine.getBlockManager()
     if (!document || !blockManager) return null
@@ -551,15 +560,17 @@ export class EditorController extends EventTarget {
     const idx = this.getBlockIndex(blockId)
     if (idx === -1) return null
 
-    const newContent: Record<string, unknown> = { text }
-    if (newType === 'heading') {
-      newContent['level'] = 2
-    }
-    if (newType === 'callout') {
-      newContent['variant'] = 'info'
-    }
-    if (newType === 'checklist') {
-      newContent['checked'] = false
+    const newContent: Record<string, unknown> = contentOverride ? { ...contentOverride } : { text }
+    if (!contentOverride) {
+      if (newType === 'heading') {
+        newContent['level'] = 2
+      }
+      if (newType === 'callout') {
+        newContent['variant'] = 'info'
+      }
+      if (newType === 'checklist') {
+        newContent['checked'] = false
+      }
     }
 
     const newBlock = blockManager.insertBlock(newType, parentId, idx, newContent)

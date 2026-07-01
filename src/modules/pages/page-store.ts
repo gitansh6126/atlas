@@ -18,7 +18,7 @@ interface PageState {
   error: string | null;
 
   loadPages: (workspaceId: string) => Promise<void>;
-  createPage: (title: string, workspaceId: string, folderId?: string | null) => Promise<void>;
+  createPage: (title: string, workspaceId: string, folderId?: string | null) => Promise<Page | null>;
   renamePage: (pageId: string, title: string) => Promise<void>;
   deletePage: (pageId: string) => Promise<void>;
   toggleFavorite: (pageId: string) => Promise<void>;
@@ -51,6 +51,7 @@ export const usePageStore = create<PageState>()((set, get) => ({
     if (result.success) {
       set({ pages: [...get().pages, result.data.page] })
     }
+    return result.success ? result.data.page : null
   },
 
   renamePage: async (pageId: string, title: string) => {

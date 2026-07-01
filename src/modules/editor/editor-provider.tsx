@@ -11,6 +11,7 @@ import { checklistPlugin } from '@/plugins/checklist'
 import { quotePlugin } from '@/plugins/quote'
 import { calloutPlugin } from '@/plugins/callout'
 import { togglePlugin } from '@/plugins/toggle'
+import { imagePlugin } from '@/plugins/image/image-plugin'
 import type { RenderNode, Selection } from '@/core/editor/types'
 import type { Page } from '@/core/types/domain'
 
@@ -29,6 +30,7 @@ const EditorProvider = React.forwardRef<EditorController, EditorProviderProps>(
     const [isDirty, setIsDirty] = React.useState(false)
     const [isSaving, setIsSaving] = React.useState(false)
     const [lastSavedAt, setLastSavedAt] = React.useState(0)
+    const [isReadOnly, setIsReadOnly] = React.useState(false)
     const [_tick, setTick] = React.useState(0)
 
     React.useEffect(() => {
@@ -47,6 +49,7 @@ const EditorProvider = React.forwardRef<EditorController, EditorProviderProps>(
           quotePlugin,
           calloutPlugin,
           togglePlugin,
+          imagePlugin,
         ]
         for (const plugin of pluginDefs) {
           try {
@@ -69,6 +72,7 @@ const EditorProvider = React.forwardRef<EditorController, EditorProviderProps>(
         setIsDirty(ctrl.isDirty())
         setIsSaving(ctrl.isSaving())
         setLastSavedAt(ctrl.getLastSavedAt())
+        setIsReadOnly(ctrl.isReadOnly())
       }
 
       const handleContentChange = () => {
@@ -96,11 +100,17 @@ const EditorProvider = React.forwardRef<EditorController, EditorProviderProps>(
         setTick((t) => t + 1)
       }
 
+      const handleReadOnlyChange = () => {
+        if (disposed) return
+        setIsReadOnly(ctrl.isReadOnly())
+      }
+
       ctrl.addEventListener('document-change', handleDocumentChange)
       ctrl.addEventListener('content-change', handleContentChange)
       ctrl.addEventListener('selection-change', handleSelectionChange)
       ctrl.addEventListener('save-state-change', handleSaveStateChange)
       ctrl.addEventListener('page-title-change', handlePageTitleChange)
+      ctrl.addEventListener('read-only-change', handleReadOnlyChange)
 
       return () => {
         disposed = true
@@ -109,6 +119,7 @@ const EditorProvider = React.forwardRef<EditorController, EditorProviderProps>(
         ctrl.removeEventListener('selection-change', handleSelectionChange)
         ctrl.removeEventListener('save-state-change', handleSaveStateChange)
         ctrl.removeEventListener('page-title-change', handlePageTitleChange)
+        ctrl.removeEventListener('read-only-change', handleReadOnlyChange)
         ctrl.closeDocument()
       }
     }, [])
@@ -122,6 +133,7 @@ const EditorProvider = React.forwardRef<EditorController, EditorProviderProps>(
       isDirty: boolean;
       isSaving: boolean;
       lastSavedAt: number;
+      isReadOnly: boolean;
     } = React.useMemo(() => ({
       controller: controller!,
       isOpen,
@@ -131,7 +143,8 @@ const EditorProvider = React.forwardRef<EditorController, EditorProviderProps>(
       isDirty,
       isSaving,
       lastSavedAt,
-    }), [controller, isOpen, page, renderTree, selection, isDirty, isSaving, lastSavedAt])
+      isReadOnly,
+    }), [controller, isOpen, page, renderTree, selection, isDirty, isSaving, lastSavedAt, isReadOnly])
 
     if (!controller) return null
 

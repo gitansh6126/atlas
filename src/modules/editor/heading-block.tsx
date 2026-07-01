@@ -3,6 +3,7 @@ import { cn } from '@/shared/utils/cn'
 import { getCaretPosition, setCaretPosition, isAtBlockStart, isAtBlockEnd } from './block-utils.ts'
 import { BlockPlaceholder } from './block-placeholder.tsx'
 import type { EditorController } from './editor-controller.ts'
+import { useReadOnly } from './editor-hooks.ts'
 
 interface HeadingBlockProps {
   blockId: string
@@ -23,6 +24,7 @@ export function HeadingBlock({
   const tripleClickCount = React.useRef(0)
   const lastClickTime = React.useRef(0)
   const isComposing = React.useRef(false)
+  const isReadOnly = useReadOnly()
 
   React.useEffect(() => {
     if (ref.current && ref.current.textContent !== text) {
@@ -194,7 +196,7 @@ export function HeadingBlock({
 
   return (
     <div className="relative">
-      {text.length === 0 && <BlockPlaceholder blockType="heading" level={level} />}
+      {text.length === 0 && !isReadOnly && <BlockPlaceholder blockType="heading" level={level} />}
       <Tag
         ref={ref}
         id={`block-${blockId}`}
@@ -202,13 +204,13 @@ export function HeadingBlock({
         aria-label={`Heading ${level}`}
         aria-multiline="false"
         aria-placeholder={`Heading ${level}`}
-        contentEditable
+        contentEditable={!isReadOnly}
         suppressContentEditableWarning
         className={cn('relative outline-none break-words whitespace-pre-wrap', tagClass)}
-        onInput={handleInput}
-        onKeyDown={handleKeyDown}
-        onCompositionStart={handleCompositionStart}
-        onCompositionEnd={handleCompositionEnd}
+        onInput={!isReadOnly ? handleInput : undefined}
+        onKeyDown={!isReadOnly ? handleKeyDown : undefined}
+        onCompositionStart={!isReadOnly ? handleCompositionStart : undefined}
+        onCompositionEnd={!isReadOnly ? handleCompositionEnd : undefined}
         onMouseDown={handleMouseDown}
         onClick={handleClick}
       >

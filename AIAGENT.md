@@ -630,4 +630,37 @@ Every engineering decision must serve this vision.
 
 ---
 
+## 18. Documentation Update Policy
+
+Every code change, feature addition, bug fix, refactor, UI improvement, architectural change, or behavioral change **must** include documentation updates before the task is considered complete.
+
+Whenever Atlas changes:
+
+1. Update Developer Documentation (`docs/developer/`) if any technical implementation changed.
+2. Update User Documentation (`docs/user/`) if the user experience, workflow, UI, features, or behavior changed.
+3. Update screenshots/examples if outdated.
+4. Update keyboard shortcuts if modified.
+5. Update architecture diagrams if affected.
+6. Update block documentation if block behavior changed.
+7. Update API documentation if interfaces changed.
+8. Update changelog/release notes.
+9. Verify all documentation links remain valid.
+
+No implementation is considered complete until the documentation has been updated.
+
+### Pull Request / Task Completion Checklist
+
+Every completed task must satisfy:
+
+- [ ] Feature implemented
+- [ ] Tests updated (if applicable)
+- [ ] Developer documentation updated
+- [ ] User documentation updated
+- [ ] AIAGENT.md policy followed
+- [ ] Examples updated
+- [ ] Screenshots updated (if required)
+- [ ] Changelog updated
+
+---
+
 *This document is a living artifact. Update it when the architecture changes, when new patterns are established, or when rules are refined. Every AI agent must start here. Every AI agent must contribute back to this document when it discovers something the next agent should know.*

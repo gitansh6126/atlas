@@ -55,10 +55,14 @@ export function PageTree({ className, section = 'pages', title = 'Pages' }: Page
   const handleCreatePage = useCallback(async () => {
     if (!currentWorkspaceId) return
     const title = `New Page ${pages.length + 1}`
-    await createPage(title, currentWorkspaceId)
+    const page = await createPage(title, currentWorkspaceId)
+    if (page) {
+      setSelectedPage(page.id)
+      navigate('/')
+    }
     await loadPages(currentWorkspaceId)
     toast(`Page "${title}" created`, 'success')
-  }, [currentWorkspaceId, pages.length, createPage, loadPages, toast])
+  }, [currentWorkspaceId, pages.length, createPage, loadPages, toast, setSelectedPage, navigate])
 
   return (
     <div className={cn('select-none', className)}>

@@ -1,6 +1,7 @@
 import React from 'react'
 import { cn } from '@/shared/utils/cn'
 import type { EditorController } from './editor-controller.ts'
+import { useReadOnly } from './editor-hooks.ts'
 
 interface RootBlockProps {
   node: { id: string; content?: Record<string, unknown> }
@@ -11,6 +12,7 @@ export function RootBlock({ node, controller }: RootBlockProps) {
   const page = controller.getPage()
   const [title, setTitle] = React.useState(page?.title ?? '')
   const ref = React.useRef<HTMLDivElement>(null)
+  const isReadOnly = useReadOnly()
 
   React.useEffect(() => {
     const onChange = () => {
@@ -78,16 +80,16 @@ export function RootBlock({ node, controller }: RootBlockProps) {
       role="textbox"
       aria-label="Page title"
       aria-placeholder="Untitled"
-      contentEditable
+      contentEditable={!isReadOnly}
       suppressContentEditableWarning
       className={cn(
         'mb-6 text-4xl font-bold outline-none break-words whitespace-pre-wrap',
-        'empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground/40 empty:before:pointer-events-none',
+        !isReadOnly && 'empty:before:content-[attr(data-placeholder)] empty:before:text-muted-foreground/40 empty:before:pointer-events-none',
         'focus-visible:outline-none focus-visible:ring-0'
       )}
-      data-placeholder="Untitled"
-      onInput={handleInput}
-      onKeyDown={handleKeyDown}
+      data-placeholder={!isReadOnly ? 'Untitled' : undefined}
+      onInput={!isReadOnly ? handleInput : undefined}
+      onKeyDown={!isReadOnly ? handleKeyDown : undefined}
     >
       {title}
     </div>

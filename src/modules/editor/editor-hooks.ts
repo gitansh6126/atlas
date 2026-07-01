@@ -32,3 +32,7 @@ export function useDirtyState() {
 export function useSavingState() {
   return useEditor().isSaving
 }
+
+export function useReadOnly() {
+  return useEditor().isReadOnly
+}

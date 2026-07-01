@@ -11,10 +11,12 @@ export function HomePage() {
   }
 
   return (
-    <Editor
-      pageId={selectedPageId}
-      workspaceId={currentWorkspaceId ?? undefined}
-      className="h-full"
-    />
+    <div className="flex h-full flex-col">
+      <Editor
+        pageId={selectedPageId}
+        workspaceId={currentWorkspaceId ?? undefined}
+        className="h-full"
+      />
+    </div>
   )
 }

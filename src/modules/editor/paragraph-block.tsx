@@ -1,11 +1,14 @@
-import React from 'react'
+import * as React from 'react'
 import { getCaretPosition, setCaretPosition, isAtBlockStart, isAtBlockEnd } from './block-utils.ts'
-import { BlockPlaceholder } from './block-placeholder.tsx'
+import { applyInlineFormatting, renderInlineText } from './inline-formatting.tsx'
+import type { InlineFormat } from '@/core/editor/types'
 import type { EditorController } from './editor-controller.ts'
+import { useReadOnly } from './editor-hooks.ts'
 
 interface ParagraphBlockProps {
   blockId: string
   text: string
+  formats?: InlineFormat[]
   controller: EditorController
   onSlashOpen: (blockId: string) => void
   onSlashClose: () => void
@@ -26,6 +29,7 @@ export function ParagraphBlock({
   const tripleClickCount = React.useRef(0)
   const lastClickTime = React.useRef(0)
   const isComposing = React.useRef(false)
+  const isReadOnly = useReadOnly()
 
   React.useEffect(() => {
     if (ref.current && ref.current.textContent !== text) {
@@ -71,6 +75,12 @@ export function ParagraphBlock({
         return
       }
       e.preventDefault()
+      // Apply inline formatting from markdown syntax
+      const currentText = el.textContent ?? ''
+      const { formatted, text: cleanText, formats } = applyInlineFormatting(currentText)
+      if (formatted) {
+        controller.updateBlockContent(blockId, { text: cleanText, formats })
+      }
       const newBlock = controller.insertParagraph(undefined, '', controller.getBlockIndex(blockId) + 1)
       if (newBlock) {
         requestAnimationFrame(() => controller.focusBlock(newBlock.id, 0))
@@ -215,26 +225,36 @@ export function ParagraphBlock({
 
   return (
     <div className="relative">
-      {text.length === 0 && <BlockPlaceholder blockType="paragraph" />}
-      <div
-        ref={ref}
-        id={`block-${blockId}`}
-        role="textbox"
-        aria-label="Paragraph"
-        aria-multiline="false"
-        aria-placeholder="Type '/' for commands..."
-        contentEditable
-        suppressContentEditableWarning
-        className="relative min-h-[1.5em] outline-none break-words whitespace-pre-wrap"
-        onInput={handleInput}
-        onKeyDown={handleKeyDown}
-        onCompositionStart={handleCompositionStart}
-        onCompositionEnd={handleCompositionEnd}
-        onMouseDown={handleMouseDown}
-        onClick={handleClick}
-      >
-        {text}
-      </div>
+      {isReadOnly ? (
+        <div
+          id={`block-${blockId}`}
+          role="textbox"
+          aria-label="Paragraph"
+          aria-multiline="false"
+          className="relative min-h-[1.5em] outline-none break-words whitespace-pre-wrap"
+        >
+          {renderInlineText(text, formats)}
+        </div>
+      ) : (
+        <div
+          ref={ref}
+          id={`block-${blockId}`}
+          role="textbox"
+          aria-label="Paragraph"
+          aria-multiline="false"
+          contentEditable
+          suppressContentEditableWarning
+          className="relative min-h-[1.5em] outline-none break-words whitespace-pre-wrap"
+          onInput={handleInput}
+          onKeyDown={handleKeyDown}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
+          onMouseDown={handleMouseDown}
+          onClick={handleClick}
+        >
+          {text}
+        </div>
+      )}
     </div>
   )
 }

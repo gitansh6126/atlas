@@ -1,11 +1,14 @@
 import React from 'react'
-import { getCaretPosition, setCaretPosition, isAtBlockStart, isAtBlockEnd } from '@/modules/editor/block-utils'
-import { BlockPlaceholder } from '@/modules/editor/block-placeholder'
+import type { InlineFormat } from '@/core/editor/types'
 import type { EditorController } from '@/modules/editor/editor-controller'
+import { getCaretPosition, setCaretPosition, isAtBlockStart, isAtBlockEnd, matchMarkdownShortcut } from '@/modules/editor/block-utils'
+import { renderInlineText, applyInlineFormatting } from '@/modules/editor/inline-formatting.tsx'
+import { useReadOnly } from '@/modules/editor/editor-hooks'
 
 interface ParagraphRendererProps {
   blockId: string
   text: string
+  formats?: InlineFormat[]
   controller: EditorController
   onSlashOpen?: (blockId: string) => void
   onSlashClose?: () => void
@@ -16,6 +19,7 @@ interface ParagraphRendererProps {
 export function ParagraphRenderer({
   blockId,
   text,
+  formats,
   controller,
   onSlashOpen,
   onSlashClose,
@@ -26,6 +30,7 @@ export function ParagraphRenderer({
   const tripleClickCount = React.useRef(0)
   const lastClickTime = React.useRef(0)
   const isComposing = React.useRef(false)
+  const isReadOnly = useReadOnly()
 
   const setRef = React.useCallback((el: HTMLDivElement | null) => {
     if (el) {
@@ -61,11 +66,38 @@ export function ParagraphRenderer({
     const el = ref.current
     if (!el) return
 
+    // Markdown shortcuts: trigger on Space after typing a prefix at block start
+    if (e.key === ' ' && isAtBlockStart(el)) {
+      const block = controller.getBlock(blockId)
+      if (block) {
+        const shortcut = matchMarkdownShortcut(block.content.text as string || '')
+        if (shortcut) {
+          e.preventDefault()
+          const newBlock = controller.convertBlock(blockId, shortcut.type)
+          if (newBlock) {
+            controller.updateBlockContent(newBlock.id, shortcut.content)
+          }
+          requestAnimationFrame(() => controller.focusBlock(newBlock?.id ?? blockId, 0))
+          return
+        }
+      }
+    }
+
     if (e.key === 'Home') { e.preventDefault(); setCaretPosition(el, 0); return }
     if (e.key === 'End') { e.preventDefault(); setCaretPosition(el, el.textContent?.length ?? 0); return }
 
     if (e.key === 'Enter') {
+      if (slashOpen) {
+        e.preventDefault()
+        return
+      }
       e.preventDefault()
+      // Apply inline formatting from markdown syntax before creating new block
+      const currentText = el.textContent ?? ''
+      const { formatted, text: cleanText, formats } = applyInlineFormatting(currentText)
+      if (formatted) {
+        controller.updateBlockContent(blockId, { text: cleanText, formats })
+      }
       const newBlock = controller.insertParagraph(undefined, '', controller.getBlockIndex(blockId) + 1)
       if (newBlock) {
         requestAnimationFrame(() => controller.focusBlock(newBlock.id, 0))
@@ -200,25 +232,34 @@ export function ParagraphRenderer({
 
   return (
     <div className="relative">
-      {text.length === 0 && <BlockPlaceholder blockType="paragraph" />}
-      <div
-        ref={setRef}
-        id={`block-${blockId}`}
-        role="textbox"
-        aria-label="Paragraph"
-        aria-multiline="false"
-        aria-placeholder="Type '/' for commands..."
-        contentEditable
-        suppressContentEditableWarning
-        className="relative min-h-[1.5em] outline-none break-words whitespace-pre-wrap"
-        onInput={handleInput}
-        onKeyDown={handleKeyDown}
-        onCompositionStart={handleCompositionStart}
-        onCompositionEnd={handleCompositionEnd}
-        onMouseDown={handleMouseDown}
-        onClick={handleClick}
-      />
-
+      {isReadOnly ? (
+        <div
+          id={`block-${blockId}`}
+          role="textbox"
+          aria-label="Paragraph"
+          aria-multiline="false"
+          className="relative min-h-[1.5em] outline-none break-words whitespace-pre-wrap"
+        >
+          {renderInlineText(text, formats)}
+        </div>
+      ) : (
+        <div
+          ref={setRef}
+          id={`block-${blockId}`}
+          role="textbox"
+          aria-label="Paragraph"
+          aria-multiline="false"
+          contentEditable
+          suppressContentEditableWarning
+          className="relative min-h-[1.5em] outline-none break-words whitespace-pre-wrap"
+          onInput={handleInput}
+          onKeyDown={handleKeyDown}
+          onCompositionStart={handleCompositionStart}
+          onCompositionEnd={handleCompositionEnd}
+          onMouseDown={handleMouseDown}
+          onClick={handleClick}
+        />
+      )}
     </div>
   )
 }

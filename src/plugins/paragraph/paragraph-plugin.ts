@@ -66,7 +66,7 @@ export const paragraphPlugin: PluginLifecycle = {
         { id: 'paragraph:duplicate', label: 'Duplicate', group: 'edit' },
         { id: 'paragraph:delete', label: 'Delete', group: 'edit' },
       ],
-      placeholder: "Type '/' for commands...",
+      placeholder: '',
     })
   },
 }

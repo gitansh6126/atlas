@@ -87,3 +87,64 @@ export function getSlashMenuPosition(blockEl: HTMLElement): { top: number; left:
     left: rect.left + window.scrollX,
   }
 }
+
+// ── Markdown shortcut patterns ──
+
+export interface MarkdownPattern {
+  regex: RegExp;
+  type: string;
+  extractContent: (match: RegExpExecArray) => Record<string, unknown>;
+}
+
+export const markdownPatterns: MarkdownPattern[] = [
+  {
+    regex: /^(#{1,6})\s+(.+)$/,
+    type: 'heading',
+    extractContent: (match) => ({ level: Math.min(match[1].length, 6), text: match[2] }),
+  },
+  {
+    regex: /^>(?:\s+)?(.+)$/,
+    type: 'quote',
+    extractContent: (match) => ({ text: match[1] }),
+  },
+  {
+    regex: /^[-*]\s*\[([ xX]?)\]\s*(.*)$/,
+    type: 'checklist',
+    extractContent: (match) => ({ checked: match[1].toLowerCase() === 'x', text: match[2] }),
+  },
+  {
+    regex: /^[-*]\s+(.+)$/,
+    type: 'bullet_list_item',
+    extractContent: (match) => ({ text: match[1], indent: 0 }),
+  },
+  {
+    regex: /^\d+\.\s+(.+)$/,
+    type: 'ordered_list_item',
+    extractContent: (match) => ({ text: match[1], indent: 0, number: 1 }),
+  },
+  {
+    regex: /^---\s*$/,
+    type: 'divider',
+    extractContent: () => ({}),
+  },
+  {
+    regex: /^(>|&gt;)\s*(.*)$/,
+    type: 'callout',
+    extractContent: (match) => ({ text: match[2] || '', variant: 'info' }),
+  },
+  {
+    regex: /^#([a-fA-F0-9]{6})\s*(.+)$/,
+    type: 'callout',
+    extractContent: (match) => ({ text: match[2], variant: 'tip' }),
+  },
+]
+
+export function matchMarkdownShortcut(text: string): { type: string; content: Record<string, unknown> } | null {
+  for (const pattern of markdownPatterns) {
+    const match = pattern.regex.exec(text)
+    if (match) {
+      return { type: pattern.type, content: pattern.extractContent(match) }
+    }
+  }
+  return null
+}

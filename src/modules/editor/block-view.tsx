@@ -5,10 +5,24 @@ import type { EditorController } from './editor-controller.ts'
 import { ParagraphBlock } from './paragraph-block.tsx'
 import { HeadingBlock } from './heading-block.tsx'
 import { DividerBlock } from './divider-block.tsx'
+import {
+  GridBlock,
+  ListBlock,
+  CardBlock,
+  GalleryBlock,
+  KanbanBlock,
+  CalendarBlock,
+} from './grid-blocks.tsx'
+import {
+  LabelBlock,
+  TagBlock,
+  HtmlEmbedBlock,
+} from './embed-blocks.tsx'
 import { BlockControls } from '@/editor/components/BlockControls/BlockControls'
 import { ContextMenu } from '@/editor/components/ContextMenu/ContextMenu'
 import { BlockPicker } from '@/editor/components/BlockPicker/BlockPicker'
 import { getBlockDomId } from './block-utils.ts'
+import { useReadOnly } from './editor-hooks.ts'
 
 interface BlockViewProps {
   node: RenderNode
@@ -42,6 +56,7 @@ export const BlockView = React.memo(function BlockView({
   onDragStart,
   onConvert,
 }: BlockViewProps) {
+  const isReadOnly = useReadOnly()
   const blockId = node.blockId
   const isSelected = selectedBlockIds.includes(blockId)
   const isSlashMenuOpen = slashMenuBlockId === blockId && slashOpen
@@ -143,6 +158,96 @@ export const BlockView = React.memo(function BlockView({
       case 'divider': {
         return <DividerBlock blockId={blockId} controller={controller} />
       }
+      case 'grid': {
+        return (
+          <GridBlock
+            node={node}
+            controller={controller}
+            isSelected={isSelected}
+            selectedBlockIds={selectedBlockIds}
+          />
+        )
+      }
+      case 'list': {
+        return (
+          <ListBlock
+            node={node}
+            controller={controller}
+            isSelected={isSelected}
+            selectedBlockIds={selectedBlockIds}
+          />
+        )
+      }
+      case 'card': {
+        return (
+          <CardBlock
+            node={node}
+            controller={controller}
+            isSelected={isSelected}
+            selectedBlockIds={selectedBlockIds}
+          />
+        )
+      }
+      case 'gallery': {
+        return (
+          <GalleryBlock
+            node={node}
+            controller={controller}
+            isSelected={isSelected}
+            selectedBlockIds={selectedBlockIds}
+          />
+        )
+      }
+      case 'kanban': {
+        return (
+          <KanbanBlock
+            node={node}
+            controller={controller}
+            isSelected={isSelected}
+            selectedBlockIds={selectedBlockIds}
+          />
+        )
+      }
+      case 'calendar': {
+        return (
+          <CalendarBlock
+            node={node}
+            controller={controller}
+            isSelected={isSelected}
+            selectedBlockIds={selectedBlockIds}
+          />
+        )
+      }
+      case 'label': {
+        return (
+          <LabelBlock
+            node={node}
+            controller={controller}
+            isSelected={isSelected}
+            selectedBlockIds={selectedBlockIds}
+          />
+        )
+      }
+      case 'tag': {
+        return (
+          <TagBlock
+            node={node}
+            controller={controller}
+            isSelected={isSelected}
+            selectedBlockIds={selectedBlockIds}
+          />
+        )
+      }
+      case 'html_embed': {
+        return (
+          <HtmlEmbedBlock
+            node={node}
+            controller={controller}
+            isSelected={isSelected}
+            selectedBlockIds={selectedBlockIds}
+          />
+        )
+      }
       default:
         return (
           <ParagraphBlock
@@ -166,37 +271,43 @@ export const BlockView = React.memo(function BlockView({
         'group relative px-1 py-0.5',
         type === 'divider' && 'py-1'
       )}
-      onDragOver={(e) => onDragOver(e, blockId)}
-      onDrop={(e) => onDrop(e, blockId)}
+      onDragOver={(e) => !isReadOnly && onDragOver(e, blockId)}
+      onDrop={(e) => !isReadOnly && onDrop(e, blockId)}
     >
-      <BlockControls
-        blockId={blockId}
-        controller={controller}
-        isSelected={isSelected}
-        onMenuOpen={handleMenuOpen}
-        onPickerOpen={handlePickerOpen}
-        onDragStart={handleLocalDragStart}
-      />
+      {!isReadOnly && (
+        <BlockControls
+          blockId={blockId}
+          controller={controller}
+          isSelected={isSelected}
+          onMenuOpen={handleMenuOpen}
+          onPickerOpen={handlePickerOpen}
+          onDragStart={handleLocalDragStart}
+        />
+      )}
       <div className="ml-0">
         {renderBlockContent()}
       </div>
-      <ContextMenu
-        blockId={blockId}
-        blockType={type}
-        open={menuOpen}
-        onClose={handleMenuClose}
-        controller={controller}
-        anchorEl={menuAnchorEl}
-        onConvert={onConvert}
-      />
-      <BlockPicker
-        blockId={blockId}
-        open={pickerOpen}
-        onClose={handlePickerClose}
-        onSelect={handlePickerSelect}
-        controller={controller}
-        anchorEl={pickerAnchorEl}
-      />
+      {!isReadOnly && (
+        <>
+          <ContextMenu
+            blockId={blockId}
+            blockType={type}
+            open={menuOpen}
+            onClose={handleMenuClose}
+            controller={controller}
+            anchorEl={menuAnchorEl}
+            onConvert={onConvert}
+          />
+          <BlockPicker
+            blockId={blockId}
+            open={pickerOpen}
+            onClose={handlePickerClose}
+            onSelect={handlePickerSelect}
+            controller={controller}
+            anchorEl={pickerAnchorEl}
+          />
+        </>
+      )}
     </div>
   )
 })

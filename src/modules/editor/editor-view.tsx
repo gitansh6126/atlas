@@ -2,7 +2,7 @@ import React from 'react'
 import { RootBlock } from './root-block.tsx'
 import { BlockView } from './block-view.tsx'
 import { cn } from '@/shared/utils/cn'
-import { useEditor } from './editor-hooks.ts'
+import { useEditor, useReadOnly } from './editor-hooks.ts'
 import { SlashMenu, type SlashMenuItem } from './slash-menu.tsx'
 import { BlockSelection } from './block-selection.tsx'
 import { FloatingToolbar } from '@/editor/components/FloatingToolbar/FloatingToolbar'
@@ -19,6 +19,7 @@ interface EditorViewProps {
 
 export function EditorView({ className }: EditorViewProps) {
   const { controller, renderTree, isOpen } = useEditor()
+  const isReadOnly = useReadOnly()
   const [slashMenuBlockId, setSlashMenuBlockId] = React.useState<string | null>(null)
   const [slashOpen, setSlashOpen] = React.useState(false)
   const [slashFilter, setSlashFilter] = React.useState('')
@@ -192,22 +193,26 @@ export function EditorView({ className }: EditorViewProps) {
           />
         ))}
       </div>
-      {isOpen && <FloatingToolbar controller={controller} />}
-      <DragOverlay dragState={dragState} />
-      <SlashMenu
-        blockId={slashMenuBlockId}
-        filter={slashFilter}
-        open={slashOpen}
-        items={slashItems}
-        controller={controller}
-        onClose={handleSlashClose}
-        onSelect={handleSlashSelect}
-      />
-      <BlockSelection
-        selectedBlockIds={selectedBlockIds}
-        dropTargetId={dragState.targetBlockId}
-        dropPosition={dragState.position}
-      />
+      {isOpen && !isReadOnly && <FloatingToolbar controller={controller} />}
+      {!isReadOnly && <DragOverlay dragState={dragState} />}
+      {!isReadOnly && (
+        <SlashMenu
+          blockId={slashMenuBlockId}
+          filter={slashFilter}
+          open={slashOpen}
+          items={slashItems}
+          controller={controller}
+          onClose={handleSlashClose}
+          onSelect={handleSlashSelect}
+        />
+      )}
+      {!isReadOnly && (
+        <BlockSelection
+          selectedBlockIds={selectedBlockIds}
+          dropTargetId={dragState.targetBlockId}
+          dropPosition={dragState.position}
+        />
+      )}
     </div>
   )
 }

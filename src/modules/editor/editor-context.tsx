@@ -12,6 +12,7 @@ export interface EditorContextValue {
   isDirty: boolean;
   isSaving: boolean;
   lastSavedAt: number;
+  isReadOnly: boolean;
 }
 
 const EditorContext = React.createContext<EditorContextValue | null>(null)
