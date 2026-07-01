@@ -27,6 +27,10 @@ export abstract class BaseRepository<T extends { id: string }> {
     return this.provider.create<T>(this.entityType, data)
   }
 
+  async upsert(data: T): Promise<Result<T, StorageError>> {
+    return this.provider.upsert<T>(this.entityType, data)
+  }
+
   async update(id: string, data: Partial<T>): Promise<Result<T, StorageError>> {
     const withTimestamps = {
       ...data,

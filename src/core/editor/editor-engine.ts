@@ -51,6 +51,17 @@ export class EditorEngine {
 
     this.state.initialize(document)
 
+    const ensureInitialParagraph = (): void => {
+      const root = document.getRootBlock()
+      if (root && root.children.length === 0) {
+        const blockManager = this.state.getBlockManager()
+        if (blockManager) {
+          blockManager.insertParagraph(config.rootBlockId, '')
+        }
+      }
+    }
+    ensureInitialParagraph()
+
     if (config.mode) {
       this.state.setMode(config.mode)
     }

@@ -27,6 +27,11 @@ export interface StorageProvider {
     data: T,
   ): Promise<Result<T, StorageError>>;
 
+  upsert<T extends { id: string }>(
+    entityType: string,
+    data: T,
+  ): Promise<Result<T, StorageError>>;
+
   update<T extends { id: string }>(
     entityType: string,
     id: string,

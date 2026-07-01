@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vue Reusable Components Notes</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+    --bg: #141414;
+    --surface-0: #1a1a1a;
+    --surface-1: #1f1f1f;
+    --surface-2: #242424;
+    --border: rgba(255,255,255,0.08);
+    --text-primary: #f0ede8;
+    --text-secondary: #b0aca4;
+    --text-muted: #6b6a64;
+    --text-accent: #4FA3E0;
+    --bg-accent: rgba(79,163,224,0.12);
+    --bg-warning: rgba(250,190,70,0.15);
+    --text-warning: #FABE46;
+    --bg-success: rgba(74,180,110,0.15);
+    --text-success: #4AB46E;
+    --bg-danger: rgba(220,80,80,0.15);
+    --text-danger: #E05555;
+    --radius: 8px;
+    --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text-primary); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 2rem 1.5rem; }
+  .wrap { max-width: 700px; margin: 0 auto; }
+  .eyebrow { font-size: 11px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase; color: var(--text-accent); margin-bottom: 4px; }
+  h1 { font-size: 22px; font-weight: 500; color: var(--text-primary); margin-bottom: 3px; }
+  .subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 2rem; }
+  .sh { display: flex; align-items: center; gap: 10px; margin: 1.75rem 0 1.1rem; }
+  .sn { width: 26px; height: 26px; border-radius: 50%; background: var(--bg-accent); color: var(--text-accent); font-size: 12px; font-weight: 500; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .st { font-size: 16px; font-weight: 500; color: var(--text-primary); }
+  .card { background: var(--surface-2); border: 0.5px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 10px; }
+  .ct { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; }
+  .ci { font-size: 18px; color: var(--text-accent); flex-shrink: 0; margin-top: 1px; }
+  .cn { font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 2px; }
+  .cs { font-size: 12px; color: var(--text-muted); }
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .p { border-radius: var(--radius); padding: 8px 10px; font-size: 12px; line-height: 1.5; }
+  .pa { background: var(--bg-warning); color: var(--text-warning); }
+  .pu { background: var(--bg-success); color: var(--text-success); }
+  .pl { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: .06em; opacity: .7; display: block; margin-bottom: 3px; }
+  .tip { background: var(--bg-accent); border-radius: var(--radius); padding: 6px 10px; font-size: 12px; color: var(--text-accent); margin-top: 8px; }
+  .warn { background: var(--bg-danger); border-radius: var(--radius); padding: 6px 10px; font-size: 12px; color: var(--text-danger); margin-top: 8px; }
+  hr { border: none; border-top: 0.5px solid var(--border); margin: 1.75rem 0; }
+  code { font-family: var(--font-mono); font-size: 11px; background: var(--surface-0); border: 0.5px solid var(--border); border-radius: 4px; padding: 1px 5px; color: var(--text-accent); }
+  .cb { background: var(--surface-0); border: 0.5px solid var(--border); border-radius: 12px; overflow: hidden; margin-top: 10px; }
+  .ch { display: flex; align-items: center; justify-content: space-between; padding: 8px 14px; border-bottom: 0.5px solid var(--border); background: var(--surface-1); }
+  .cl { font-size: 11px; font-weight: 500; color: var(--text-muted); font-family: var(--font-mono); }
+  .cr { font-size: 11px; color: var(--text-muted); }
+  .body { padding: 12px 14px; }
+  .line { display: flex; gap: 10px; margin: 2px 0; }
+  .lc { flex: 1; min-width: 0; font-family: var(--font-mono); font-size: 11px; line-height: 1.75; color: var(--text-secondary); white-space: pre; }
+  .ln { font-size: 11px; color: var(--text-accent); min-width: 185px; padding-left: 8px; border-left: 2px solid rgba(79,163,224,0.3); flex-shrink: 0; line-height: 1.75; display: flex; align-items: center; }
+  .kw { color: #4FA3E0; font-weight: 500; }
+  .fn { color: #4EC9A0; font-weight: 500; }
+  .st { color: #CE9E6A; }
+  .cm { color: #555; }
+  .di { color: #C792EA; font-weight: 500; }
+  .flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .fb { background: var(--surface-1); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 8px 12px; font-size: 12px; color: var(--text-primary); text-align: center; flex: 1; }
+  .fb small { display: block; font-size: 10px; color: var(--text-muted); margin-top: 2px; }
+  .fa-down { color: #4FA3E0; font-size: 13px; font-weight: 700; }
+  .fa-up { color: #CE9E6A; font-size: 13px; font-weight: 700; }
+  .rule-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+  .rule { background: var(--surface-1); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px; }
+  .rule-icon { font-size: 16px; color: var(--text-accent); display: block; margin-bottom: 6px; }
+  .rule-title { font-size: 12px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px; }
+  .rule-desc { font-size: 11px; color: var(--text-secondary); line-height: 1.5; }
+  strong { font-weight: 600; }
+  .src-box { margin-top: 10px; }
+  .src-box.hidden { display: none; }
+  .src-box object { width: 100%; height: 60vh; min-height: 300px; border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--surface-0); }
+  .src-box textarea { width: 100%; height: 60vh; min-height: 300px; font-family: var(--font-mono); font-size: 11px; line-height: 1.5; background: var(--surface-0); color: var(--text-secondary); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px; resize: vertical; }
+  .src-fallback { display: none; }
+  .src-box object.failed + .src-fallback { display: block; }
+  .src-actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+  .btn { background: var(--surface-1); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 8px 14px; font-size: 12px; color: var(--text-primary); cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; }
+  .btn:hover { background: var(--surface-2); }
+  .btn i { font-size: 13px; color: var(--text-accent); }
+  @media (max-width: 540px) { .g2, .rule-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+(function () {
+"use strict";
+
+// ============================================================
+//  DATA — All page content lives here. Edit this object only.
+//  Adding, removing, or changing sections/cards requires no
+//  changes to any code below.
+// ============================================================
+
+var PAGE_DATA = {
+  // ---- Page header ----
+  header: {
+    eyebrow: "Vue.js \u00b7 Components",
+    title: "Building Reusable Components",
+    subtitle: "Encapsulation \u00b7 Props \u00b7 Events \u00b7 SPA architecture"
+  },
+
+  // ---- Sections ----
+  sections: [
+    // ----------------------------------------------------------
+    //  Section 1 — Introduction to components
+    // ----------------------------------------------------------
+    {
+      number: 1,
+      title: "Introduction to components",
+      content: [
+        {
+          type: "card",
+          icon: "fa-puzzle-piece",
+          title:
+            "A component = a self-contained UI unit with its own template, logic, and data",
+          subtitle:
+            'Registered via <code>Vue.component(name, options)</code> \u2014 then usable as a custom HTML tag',
+
+          grid: [
+            {
+              cssClass: "pa",
+              label: "Analogy",
+              html:
+                'Think of LEGO bricks. A monolithic app is a single moulded plastic toy \u2014 ' +
+                "can't change one part without breaking the whole. Components are individual " +
+                "LEGO bricks \u2014 same shape every time, snap together anywhere, replace one " +
+                "without touching the rest."
+            },
+            {
+              cssClass: "pu",
+              label: "Real use \u2014 RMS",
+              html:
+                'A <code>&lt;student-card&gt;</code> component: photo, name, batch, score. ' +
+                "Define once. Drop it into the dashboard, the attendance page, and the parent " +
+                "report \u2014 all three update automatically when the component changes."
+            }
+          ],
+
+          code: {
+            title: "Vue.component() \u2014 basic structure",
+            badge: "registration",
+            lines: [
+              { html: 'Vue.<span class="fn">component</span>(<span class="st">\'message-board\'</span>, {', note: 'name must be kebab-case' },
+              { html: '  <span class="kw">data</span>() {             <span class="cm">// must be a FUNCTION</span>', note: 'not a plain object \u2014 see warning' },
+              { html: '    <span class="kw">return</span> {', note: '' },
+              { html: '      messages: [],', note: 'each instance gets its own copy' },
+              { html: '      newMessage: <span class="st">\'\'</span>', note: '' },
+              { html: '    }', note: '' },
+              { html: '  },', note: '' },
+              { html: '  <span class="kw">props</span>: [<span class="st">\'title\'</span>],   <span class="cm">// data from parent</span>', note: 'defines what parent can pass in' },
+              { html: '  template: <span class="st">`</span>', note: '' },
+              { html: '    <span class="st">&lt;div&gt;</span>             <span class="cm">&lt;!-- ONE root element --&gt;</span>', note: 'required \u2014 no sibling roots' },
+              { html: '      <span class="st">&lt;h3&gt;<span class="di">{{ title }}</span>&lt;/h3&gt;</span>', note: 'renders prop value from parent' },
+              { html: '      <span class="st">&lt;p&gt;<span class="di">{{ messages.length }}</span> messages&lt;/p&gt;</span>', note: 'local state \u2014 isolated per instance' },
+              { html: '    <span class="st">&lt;/div&gt;</span>', note: '' },
+              { html: '  <span class="st">`</span>', note: '' },
+              { html: '})', note: '' }
+            ]
+          },
+
+          warnings: [
+            '\u26a0 If <code>data</code> is an object (not a function), all instances share the same state \u2014 change one board\u2019s messages and every board updates. The function form returns a fresh object each time, isolating each instance.',
+            '\u26a0 Template must have exactly ONE root element. Two sibling <code>&lt;div&gt;</code>s at the top level throw a Vue error. Wrap everything in a single container.'
+          ]
+        }
+      ]
+    },
+
+    // ----------------------------------------------------------
+    //  Section 2 — Passing data down with props
+    // ----------------------------------------------------------
+    {
+      number: 2,
+      title: "Passing data down with props",
+      content: [
+        {
+          type: "card",
+          icon: "fa-arrow-down",
+          title: "Props = custom attributes the parent sets on a component tag",
+          subtitle:
+            "Defined as an array of strings in the component; accessed like local data in the template",
+
+          grid: [
+            {
+              cssClass: "pa",
+              label: "Analogy",
+              html:
+                'Props are like a printed brief handed to a contractor before work begins. ' +
+                '"Project name: Raj\u2019s Board. Client: RMS." The contractor (component) uses ' +
+                "the brief (props) but doesn\u2019t write it themselves \u2014 the client (parent) does."
+            },
+            {
+              cssClass: "pu",
+              label: "Real use \u2014 RMS",
+              html:
+                'Two boards on one page: one for Raj, one for Fatima. Same ' +
+                '<code>&lt;message-board&gt;</code> component, different <code>title</code> prop. ' +
+                'Zero duplication. Change the board\u2019s design once \u2014 both update.'
+            }
+          ],
+
+          code: {
+            title: "Props \u2014 define in component, set in parent",
+            badge: "data flow \u2193",
+            lines: [
+              { html: '<span class="cm">// Component definition:</span>', note: '' },
+              { html: '<span class="kw">props</span>: [<span class="st">\'title\'</span>],', note: 'declare expected prop names' },
+              { html: ' ', note: '' },
+              { html: '<span class="cm">// Parent HTML:</span>', note: '' },
+              { html: '&lt;message-board <span class="di">title</span>=<span class="st">"Raj\'s Board"</span>&gt;&lt;/message-board&gt;', note: 'static string prop' },
+              { html: '&lt;message-board <span class="di">:title</span>=<span class="st">"boardName"</span>&gt;&lt;/message-board&gt;', note: ': prefix = dynamic binding' },
+              { html: ' ', note: '' },
+              { html: '<span class="cm">// Inside component template:</span>', note: '' },
+              { html: '&lt;h3&gt;<span class="di">{{ title }}</span>&lt;/h3&gt;', note: 'no this. needed in templates' }
+            ]
+          },
+
+          tips: [
+            '\u{1F4A1} Props are read-only inside the component. Never do <code>this.title = \'x\'</code> \u2014 that breaks the data flow contract. If you need to modify a prop, copy it into a local <code>data</code> property first.'
+          ]
+        }
+      ]
+    },
+
+    // ----------------------------------------------------------
+    //  Section 3 — Communicating upward with $emit
+    // ----------------------------------------------------------
+    {
+      number: 3,
+      title: "Communicating upward with $emit",
+      content: [
+        {
+          type: "card",
+          icon: "fa-arrow-up",
+          title: "$emit fires a named event upward \u2014 parent listens and responds",
+          subtitle: "Child signals intent. Parent decides what to do. Child never touches parent data.",
+
+          flow: [
+            { text: "Child component", sub: "user adds a message" },
+            { text: "$emit \u2191", arrow: "up" },
+            { text: "Parent app", sub: "hears event, updates global count" }
+          ],
+
+          grid: [
+            {
+              cssClass: "pa",
+              label: "Analogy",
+              html:
+                'A cashier at an RMS branch can\u2019t update head office accounts directly. ' +
+                'They ring a bell (emit) saying "sale made \u2014 add \u20b9500". Head office hears ' +
+                'the bell and updates the ledger. The cashier never touches the ledger themselves.'
+            },
+            {
+              cssClass: "pu",
+              label: "Real use \u2014 RMS",
+              html:
+                'Each <code>&lt;message-board&gt;</code> has its own local count. When a message ' +
+                'is added it emits <code>\'add-to-global-total\'</code>. The root app listens and ' +
+                'increments <code>globalMessageCount</code> shown at the top \u2014 a number no ' +
+                'single board owns.'
+            }
+          ],
+
+          code: {
+            title: "$emit in child \u2014 v-on in parent",
+            badge: "event flow \u2191",
+            lines: [
+              { html: '<span class="cm">// CHILD component:</span>', note: '' },
+              { html: 'methods: {', note: '' },
+              { html: '  <span class="fn">addMessage</span>() {', note: '' },
+              { html: '    <span class="kw">this</span>.messages.<span class="fn">push</span>(<span class="kw">this</span>.newMessage)', note: 'update local state first' },
+              { html: '    <span class="kw">this</span>.<span class="fn">$emit</span>(<span class="st">\'add-to-global-total\'</span>)', note: 'fire event UP to parent' },
+              { html: '    <span class="kw">this</span>.newMessage = <span class="st">\'\'</span>  <span class="cm">// reset input</span>', note: 'clear the field after submit' },
+              { html: '  }', note: '' },
+              { html: '}', note: '' },
+              { html: ' ', note: '' },
+              { html: '<span class="cm">// PARENT HTML:</span>', note: '' },
+              { html: '&lt;message-board', note: '' },
+              { html: '  <span class="di">title</span>=<span class="st">"Raj\'s Board"</span>', note: 'prop going DOWN \u2193' },
+              { html: '  <span class="di">v-on:add-to-global-total</span>=<span class="st">"incrementTotal"</span>', note: 'event coming UP \u2191 \u2192 calls method' },
+              { html: '&gt;&lt;/message-board&gt;', note: '' },
+              { html: ' ', note: '' },
+              { html: '<span class="cm">// PARENT Vue instance:</span>', note: '' },
+              { html: '<span class="kw">new</span> <span class="fn">Vue</span>({', note: '' },
+              { html: '  el: <span class="st">\'#app\'</span>,', note: '' },
+              { html: '  data: { globalTotal: <span class="st">0</span> },', note: 'lives in root \u2014 no component owns it' },
+              { html: '  methods: {', note: '' },
+              { html: '    <span class="fn">incrementTotal</span>() {', note: '' },
+              { html: '      <span class="kw">this</span>.globalTotal++', note: 'root updates its own data' },
+              { html: '    }', note: '' },
+              { html: '  }', note: '' },
+              { html: '})', note: '' }
+            ]
+          },
+
+          warnings: [
+            '\u26a0 The lecture notes say <code>this.$dollar.emit</code> \u2014 that\u2019s a typo in the source material. The correct syntax is always <code>this.$emit(\'event-name\')</code>. <code>$emit</code> is a built-in Vue instance method.'
+          ]
+        }
+      ]
+    },
+
+    // ----------------------------------------------------------
+    //  Section 4 — Key takeaways
+    // ----------------------------------------------------------
+    {
+      number: 4,
+      title: "Key takeaways \u2014 the three rules",
+      content: [
+        {
+          type: "rules",
+          items: [
+            {
+              icon: "\u{1F9E9}",
+              title: "Modularity",
+              desc:
+                "Each component owns its template, logic, and local state. Change it once " +
+                "\u2014 every instance updates. Bugs stay isolated inside the component."
+            },
+            {
+              icon: "\u2195",
+              title: "Data flow",
+              desc:
+                "Props carry data <strong>down</strong>. Events carry signals <strong>up</strong>. " +
+                "No component ever reaches into another\u2019s state directly."
+            },
+            {
+              icon: "\u{1F4E6}",
+              title: "Scalability",
+              desc:
+                "Props-in + events-out is the universal SPA contract. React, Angular, Svelte all " +
+                "use this same pattern. Learn it once \u2014 applies everywhere."
+            }
+          ]
+        },
+        {
+          type: "card",
+          icon: "fa-building",
+          title: "Applied to RMS \u2014 what this architecture unlocks",
+          grid: [
+            {
+              cssClass: "pu",
+              label: "Now possible",
+              html:
+                'A student dashboard where each batch has its own ' +
+                '<code>&lt;batch-panel&gt;</code> component. Click "add student" in any panel ' +
+                '\u2014 a <code>student-added</code> event fires up to the root, which updates ' +
+                'the global enrollment count in the header. No shared mutable state between panels.'
+            },
+            {
+              cssClass: "pu",
+              label: "Scale signal",
+              html:
+                'When passing events through 3+ component layers gets painful, that\u2019s the ' +
+                'signal to introduce Vuex/Pinia (state management). But for 90% of RMS-scale ' +
+                'apps, props + $emit is sufficient and far simpler. Don\u2019t add Vuex until ' +
+                'you genuinely feel the pain.'
+            }
+          ]
+        }
+      ]
+    }
+  ],
+
+  // ---- Embedded source (self-referencing file embed) ----
+  embed: {
+    title: "Embedded Source",
+    subtitle: "This file\u2019s source rendered via \u003Cobject\u003E with text fallback for editors that don\u2019t support the embed."
+  }
+};
+
+
+// ============================================================
+//  RENDERING UTILITIES
+// ============================================================
+
+/**
+ * Create a DOM element with attributes and children.
+ * @param {string} tag       HTML tag name
+ * @param {object} attrs     Attributes (className, html, style, etc.)
+ * @param  {...any} children Text strings, DOM nodes, or null
+ * @returns {HTMLElement}
+ */
+function h(tag, attrs, ...children) {
+  var el = document.createElement(tag);
+  if (attrs) {
+    for (var key in attrs) {
+      if (!attrs.hasOwnProperty(key)) continue;
+      var val = attrs[key];
+      if (key === "className") {
+        el.className = val;
+      } else if (key === "html") {
+        el.innerHTML = val;
+      } else if (key === "style") {
+        el.style.cssText = val;
+      } else {
+        el.setAttribute(key, val);
+      }
+    }
+  }
+  for (var i = 0; i < children.length; i++) {
+    var child = children[i];
+    if (child == null || child === false) continue;
+    if (typeof child === "string" || typeof child === "number") {
+      el.appendChild(document.createTextNode(String(child)));
+    } else {
+      el.appendChild(child);
+    }
+  }
+  return el;
+}
+
+
+// ============================================================
+//  RENDER FUNCTIONS (one per component type)
+// ============================================================
+
+/** Render the page header (eyebrow, title, subtitle). */
+function renderHeader(data) {
+  var wrap = document.createDocumentFragment();
+  wrap.appendChild(h("p", { className: "eyebrow" }, data.eyebrow));
+  wrap.appendChild(h("h1", {}, data.title));
+  wrap.appendChild(h("p", { className: "subtitle" }, data.subtitle));
+  return wrap;
+}
+
+/** Render an <hr> divider. */
+function renderDivider() {
+  return h("hr");
+}
+
+/** Render a section header (circle number + title). */
+function renderSectionHeader(number, title) {
+  return h("div", { className: "sh" },
+    h("div", { className: "sn" }, String(number)),
+    h("span", { className: "st" }, title)
+  );
+}
+
+/** Render a grid of 2 items inside a card. */
+function renderGrid(items) {
+  if (!items || items.length === 0) return null;
+  var grid = h("div", { className: "g2" });
+  for (var i = 0; i < items.length; i++) {
+    var item = items[i];
+    var div = h("div", { className: "p " + item.cssClass });
+    div.appendChild(h("span", { className: "pl" }, item.label));
+    div.insertAdjacentHTML("beforeend", item.html);
+    grid.appendChild(div);
+  }
+  return grid;
+}
+
+/** Render a code block. */
+function renderCodeBlock(code) {
+  if (!code) return null;
+  var bodyChildren = [];
+  for (var i = 0; i < code.lines.length; i++) {
+    var line = code.lines[i];
+    bodyChildren.push(
+      h("div", { className: "line" },
+        h("span", { className: "lc", html: line.html }),
+        h("span", { className: "ln" }, line.note || "")
+      )
+    );
+  }
+  return h("div", { className: "cb" },
+    h("div", { className: "ch" },
+      h("span", { className: "cl" }, code.title),
+      h("span", { className: "cr" }, code.badge)
+    ),
+    h("div", { className: "body" }, bodyChildren)
+  );
+}
+
+/** Render warning banners. */
+function renderWarnings(warnings) {
+  if (!warnings || warnings.length === 0) return null;
+  var frag = document.createDocumentFragment();
+  for (var i = 0; i < warnings.length; i++) {
+    frag.appendChild(h("div", { className: "warn", html: warnings[i] }));
+  }
+  return frag;
+}
+
+/** Render tip banners. */
+function renderTips(tips) {
+  if (!tips || tips.length === 0) return null;
+  var frag = document.createDocumentFragment();
+  for (var i = 0; i < tips.length; i++) {
+    frag.appendChild(h("div", { className: "tip", html: tips[i] }));
+  }
+  return frag;
+}
+
+/** Render a flow diagram inside a card. */
+function renderFlow(flow) {
+  if (!flow || flow.length === 0) return null;
+  var frag = document.createDocumentFragment();
+  for (var i = 0; i < flow.length; i++) {
+    var item = flow[i];
+    if (item.arrow) {
+      frag.appendChild(
+        h("span", { className: "fa-" + item.arrow }, item.text)
+      );
+    } else {
+      frag.appendChild(
+        h("div", { className: "fb" },
+          item.text,
+          item.sub ? h("small", {}, item.sub) : null
+        )
+      );
+    }
+  }
+  return h("div", { className: "flow" }, frag);
+}
+
+/** Render a rule grid (3-column layout). */
+function renderRules(rules) {
+  if (!rules || rules.items.length === 0) return null;
+  var grid = h("div", { className: "rule-grid" });
+  for (var i = 0; i < rules.items.length; i++) {
+    var r = rules.items[i];
+    grid.appendChild(
+      h("div", { className: "rule" },
+        h("span", { className: "rule-icon" }, r.icon),
+        h("p", { className: "rule-title" }, r.title),
+        h("p", { className: "rule-desc", html: r.desc })
+      )
+    );
+  }
+  return grid;
+}
+
+/** Render a single card block. */
+function renderCard(card) {
+  var parts = [];
+
+  // Card header (icon + text)
+  if (card.icon || card.title) {
+    var headerFrag = document.createDocumentFragment();
+    if (card.icon) {
+      headerFrag.appendChild(
+        h("i", {
+          className: "fa-solid " + card.icon + " ci",
+          style: "font-size:16px;color:var(--text-accent);margin-top:2px;flex-shrink:0"
+        })
+      );
+    }
+    var textWrap = h("div");
+    if (card.title) {
+      textWrap.appendChild(h("p", { className: "cn" }, card.title));
+    }
+    if (card.subtitle) {
+      textWrap.appendChild(h("p", { className: "cs", html: card.subtitle }));
+    }
+    headerFrag.appendChild(textWrap);
+    parts.push(h("div", { className: "ct" }, headerFrag));
+  }
+
+  // Flow diagram
+  if (card.flow) {
+    parts.push(renderFlow(card.flow));
+  }
+
+  // Grid
+  if (card.grid) {
+    parts.push(renderGrid(card.grid));
+  }
+
+  // Code block
+  if (card.code) {
+    parts.push(renderCodeBlock(card.code));
+  }
+
+  // Tips
+  if (card.tips) {
+    parts.push(renderTips(card.tips));
+  }
+
+  // Warnings
+  if (card.warnings) {
+    parts.push(renderWarnings(card.warnings));
+  }
+
+  var cardEl = h("div", { className: "card" });
+  for (var i = 0; i < parts.length; i++) {
+    if (parts[i]) {
+      cardEl.appendChild(parts[i]);
+    }
+  }
+  return cardEl;
+}
+
+
+/** Render the embedded source section using <object> with text fallback. */
+function renderEmbeddedSource(embed) {
+  if (!embed) return null;
+
+  var selfUrl = window.location.href;
+  var fileName = selfUrl.split("/").pop() || "source.html";
+
+  // Toggle button
+  var toggleBtn = h("button", { className: "btn", type: "button" },
+    h("i", { className: "fa-solid fa-eye-slash" }),
+    " Hide Source"
+  );
+
+  // Fallback textarea (inside <object> — shown only if the object fails to render)
+  var ta = h("textarea", {
+    readonly: "",
+    style: "width:100%;height:60vh;min-height:300px;padding:12px;font-family:var(--font-mono);font-size:11px;line-height:1.5;background:var(--surface-0);color:var(--text-secondary);border:0.5px solid var(--border);border-radius:var(--radius);resize:vertical;"
+  }, "Loading source\u2026");
+
+  // Embed via <object> with textarea as native fallback content.
+  // The <textarea> inside <object> is shown only when the object fails
+  // (e.g. in editors that strip object tags or in restricted environments).
+  var obj = h("object", {
+    data: selfUrl,
+    type: "text/html",
+    style: "width:100%;height:60vh;min-height:300px;border:0.5px solid var(--border);border-radius:var(--radius);background:var(--surface-0);display:block;"
+  }, ta);
+
+  // Container (visible by default — toggle to hide)
+  var box = h("div", { className: "src-box" }, obj);
+
+  // Fetch source asynchronously to populate the fallback textarea
+  try {
+    var req = new XMLHttpRequest();
+    req.open("GET", selfUrl, true);
+    req.onreadystatechange = function () {
+      if (req.readyState === 4 && req.status === 200) {
+        ta.value = req.responseText;
+      } else if (req.readyState === 4) {
+        ta.value = "Could not load source.\nURL: " + selfUrl + "\nStatus: " + req.status;
+      }
+    };
+    req.send();
+  } catch (e) {
+    ta.value = "Could not fetch source: " + e.message;
+  }
+
+  // Action buttons
+  var dlBtn = h("a", { className: "btn", href: selfUrl, download: fileName },
+    h("i", { className: "fa-solid fa-download" }),
+    " Download (" + fileName + ")"
+  );
+
+  var actions = h("div", { className: "src-actions" }, toggleBtn, dlBtn);
+
+  // Toggle handler
+  toggleBtn.addEventListener("click", function () {
+    var isHidden = box.classList.toggle("hidden");
+    toggleBtn.innerHTML = isHidden
+      ? '<i class="fa-solid fa-code"></i> Show Source'
+      : '<i class="fa-solid fa-eye-slash"></i> Hide Source';
+  });
+
+  return h("div", { className: "card", id: "embedded-source" },
+    h("div", { className: "ct" },
+      h("i", { className: "fa-solid fa-file-code ci", style: "font-size:16px;color:var(--text-accent);margin-top:2px;flex-shrink:0" }),
+      h("div",
+        h("p", { className: "cn" }, embed.title),
+        h("p", { className: "cs", html: embed.subtitle })
+      )
+    ),
+    actions,
+    box
+  );
+}
+
+
+// ============================================================
+//  PAGE BUILDER
+// ============================================================
+
+function buildPage(data) {
+  var root = document.createDocumentFragment();
+
+  // Header
+  root.appendChild(renderHeader(data.header));
+
+  // Sections
+  for (var s = 0; s < data.sections.length; s++) {
+    var section = data.sections[s];
+
+    // Divider before every section except the first
+    if (s > 0) {
+      root.appendChild(renderDivider());
+    }
+
+    // Section header
+    root.appendChild(renderSectionHeader(section.number, section.title));
+
+    // Section content blocks
+    for (var c = 0; c < section.content.length; c++) {
+      var block = section.content[c];
+      if (block.type === "card") {
+        root.appendChild(renderCard(block));
+      } else if (block.type === "rules") {
+        root.appendChild(renderRules(block));
+      }
+    }
+  }
+
+  // Embedded source section (after all content sections)
+  if (data.embed) {
+    root.appendChild(renderDivider());
+    root.appendChild(renderEmbeddedSource(data.embed));
+  }
+
+  return root;
+}
+
+
+// ============================================================
+//  INIT
+// ============================================================
+
+var app = document.getElementById("app");
+app.appendChild(buildPage(PAGE_DATA));
+
+})();
+</script>
+
+</body>
+</html>

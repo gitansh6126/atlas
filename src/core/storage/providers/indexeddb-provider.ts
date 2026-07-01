@@ -101,6 +101,18 @@ export class IndexedDbStorageProvider implements StorageProvider {
     })
   }
 
+  async upsert<T extends { id: string }>(
+    entityType: string,
+    data: T,
+  ): Promise<Result<T, StorageError>> {
+    return this.wrap(async () => {
+      const table = this.getTable(entityType) as unknown as Table<T, string>
+      await table.put(data)
+      logger.debug(`Upserted ${entityType}: ${data.id}`)
+      return data
+    })
+  }
+
   async update<T extends { id: string }>(
     entityType: string,
     id: string,

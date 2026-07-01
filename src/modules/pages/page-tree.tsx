@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { ChevronRight, FileText, MoreHorizontal, Plus, Star, Pin, GripVertical } from 'lucide-react'
 import { useWorkspaceStore } from '@/modules/workspace/workspace-store'
 import { usePageStore } from '@/modules/pages/page-store'
@@ -23,6 +24,7 @@ interface PageTreeProps {
 }
 
 export function PageTree({ className, section = 'pages', title = 'Pages' }: PageTreeProps) {
+  const navigate = useNavigate()
   const { setSelectedPage, selectedPageId } = useWorkspaceStore()
   const {
     pages,
@@ -60,9 +62,12 @@ export function PageTree({ className, section = 'pages', title = 'Pages' }: Page
 
   return (
     <div className={cn('select-none', className)}>
-      <button
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => toggleSection(section)}
-        className="group flex w-full items-center gap-1 px-2 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') toggleSection(section) }}
+        className="group flex w-full cursor-pointer items-center gap-1 px-2 py-1 text-xs font-medium uppercase tracking-wider text-muted-foreground transition-colors hover:text-foreground"
       >
         <ChevronRight className={cn('h-3 w-3 transition-transform', isExpanded && 'rotate-90')} />
         {title}
@@ -76,7 +81,7 @@ export function PageTree({ className, section = 'pages', title = 'Pages' }: Page
             <Plus className="h-3 w-3" />
           </Button>
         )}
-      </button>
+      </div>
       {isExpanded && (
         <div className="mt-1 space-y-0.5">
           {displayedPages.length === 0 ? (
@@ -93,7 +98,7 @@ export function PageTree({ className, section = 'pages', title = 'Pages' }: Page
                 key={page.id}
                 page={page}
                 isSelected={selectedPageId === page.id}
-                onSelect={() => setSelectedPage(page.id)}
+                onSelect={() => { setSelectedPage(page.id); navigate('/') }}
                 onToggleFavorite={(e) => {
                   e.stopPropagation()
                   toggleFavorite(page.id)

@@ -84,6 +84,15 @@ export class MemoryStorageProvider implements StorageProvider {
     return { success: true, data }
   }
 
+  async upsert<T extends { id: string }>(
+    entityType: string,
+    data: T,
+  ): Promise<Result<T, StorageError>> {
+    const store = this.getStore(entityType)
+    store.set(data.id, data as unknown as EntityRecord)
+    return { success: true, data }
+  }
+
   async update<T extends { id: string }>(
     entityType: string,
     id: string,
